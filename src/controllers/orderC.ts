@@ -6,18 +6,18 @@ const prisma = new PrismaClient({ errorFormat: "pretty" });
 
 export const getAllOrders = async (request: Request, response: Response) => {
   try {
-    /** get requested data (data has been sent from request) */
+    // mendapatkan data yang diminta (data telah dikirim dari permintaan)
     const { search } = request.query;
 
-    /** process to get order, contains means search name or table number of customer's order based on sent keyword */
+    // proses untuk mendapatkan pesanan, berisi cara mencari nama atau nomor tabel pesanan pelanggan berdasarkan kata kunci yang dikirim
     const allOrders = await prisma.order.findMany({
       where: {
         OR: [{ customer: { contains: search?.toString() || "" } }],
       },
-      orderBy: { createdAt: "desc" } /** sort by descending order date */,
+      orderBy: { createdAt: "desc" }, // mengurutkan berdasarkan tanggal urutan menurun
       include: {
         order_list: true,
-      } /** include detail of order (item that sold) */,
+      }, //menyertakan detail pesanan (barang yang dijual),
     });
     return response
       .json({
@@ -37,17 +37,16 @@ export const getAllOrders = async (request: Request, response: Response) => {
 };
 export const createOrder = async (request: Request, response: Response) => {
   try {
-    /** get requested data (data has been sent from request) */
-    const { customer, table_number, payment_method, status, orderlists } =
-      request.body;
+    // mendapatkan data yang diminta (data telah dikirim dari permintaan)
+    const { customer, payment_method, status, orderlists } = request.body;
     const user = request.body.user;
     const uuid = uuidv4();
     /**
-     * assume that "orderlists" is an array of object that has keys:
-     * productId, quantity, note
+     * asumsikan bahwa “orderlists” adalah sebuah array objek yang memiliki kunci:
+     * productId, kuantitas, catatan
      * */
 
-    /** loop details of order to check product and count the total price */
+    // perulangan detail pesanan untuk memeriksa produk dan menghitung total harga
     let total_price = 0;
     for (let index = 0; index < orderlists.length; index++) {
       const { productId } = orderlists[index];
@@ -64,7 +63,7 @@ export const createOrder = async (request: Request, response: Response) => {
       total_price += detailProduct.price * orderlists[index].quantity;
     }
 
-    /** process to save new order */
+    // proses untuk menyimpan pesanan baru
     const newOrder = await prisma.order.create({
       data: {
         uuid,
@@ -76,7 +75,7 @@ export const createOrder = async (request: Request, response: Response) => {
       },
     });
 
-    /** loop details of Order to save in database */
+    // perulangan detail Pesanan untuk disimpan dalam database
     for (let index = 0; index < orderlists.length; index++) {
       const uuid = uuidv4();
       const { productId, quantity, note } = orderlists[index];
@@ -111,13 +110,13 @@ export const updateStatusOrder = async (
   response: Response
 ) => {
   try {
-    /** get id of order's id that sent in parameter of URL */
+    // mendapatkan id dari id pesanan yang dikirim dalam parameter URL
     const { id } = request.params;
-    /** get requested data (data has been sent from request) */
+    // mendapatkan data yang diminta (data telah dikirim dari permintaan)
     const { status } = request.body;
     const user = request.body.user;
 
-    /** make sure that data is exists in database */
+    // pastikan data sudah ada di database
     const findOrder = await prisma.order.findFirst({
       where: { id: Number(id) },
     });
@@ -126,7 +125,7 @@ export const updateStatusOrder = async (
         .status(200)
         .json({ status: false, message: `Order is not found` });
 
-    /** process to update product's data */
+    // proses untuk memperbarui data produk
     const updatedStatus = await prisma.order.update({
       data: {
         status: status || findOrder.status,
@@ -153,10 +152,10 @@ export const updateStatusOrder = async (
 };
 export const deleteOrder = async (request: Request, response: Response) => {
   try {
-    /** get id of order's id that sent in parameter of URL */
+    // mendapatkan id dari id pesanan yang dikirim dalam parameter URL
     const { id } = request.params;
 
-    /** make sure that data is exists in database */
+    // pastikan data sudah ada di database
     const findOrder = await prisma.order.findFirst({
       where: { id: Number(id) },
     });
@@ -164,11 +163,11 @@ export const deleteOrder = async (request: Request, response: Response) => {
       return response
         .status(200)
         .json({ status: false, message: `Order is not found` });
-    /** process to delete details of order */
+    // proses untuk menghapus detail pesanan
     let deleteOrderList = await prisma.order_list.deleteMany({
       where: { idOrder: Number(id) },
     });
-    /** process to delete of Order */
+    // proses untuk menghapus Pesanan
     let deleteOrder = await prisma.order.delete({ where: { id: Number(id) } });
 
     return response

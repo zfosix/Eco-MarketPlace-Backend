@@ -56,7 +56,7 @@ model product {
   price       Int          @default(0)
   category    Category     @default(FOOD)
   picture     String       @default("")
-  description String       @default("") @db.Text
+  description String       @db.Text
   createdAt   DateTime     @default(now())
   updateAt    DateTime     @default(now()) @updatedAt // Beri nilai default saat kolom ditambahkan
   order_list  order_list[]
@@ -86,5 +86,5 @@ model order_list {
   idProduct Int?
   product   product? @relation(fields: [idProduct], references: [id])
   quantity  Int      @default(0)
-  note      String   @default("") @db.Text
+  note      String   @db.Text
 }
