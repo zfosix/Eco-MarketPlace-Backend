@@ -29,7 +29,7 @@ app.put(
   `/:id`,
   [
     verifyToken,
-    verifyRole(["MANAGER"]),
+    verifyRole(["ADMIN"]),
     uploadFileUser.single("picture"),
     verifyUpdateUser,
   ],
