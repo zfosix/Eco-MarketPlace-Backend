@@ -7,7 +7,7 @@ import { log } from "console";
 import md5 from "md5";
 import path from "path";
 
-const PORT: number = 6000;
+const PORT: number = 2000;
 const app = express();
 app.use(cors());
 
